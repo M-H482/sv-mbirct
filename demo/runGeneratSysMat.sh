@@ -20,7 +20,7 @@ execdir="../bin"
 
 dataDir="./exp_data"
 dataName=${1:-shepp}
-echo "dataName = $datName"
+echo "dataName = $dataName"
 
 # sample sub-folder organization
 parName="$dataDir/$dataName/par/$dataName"
