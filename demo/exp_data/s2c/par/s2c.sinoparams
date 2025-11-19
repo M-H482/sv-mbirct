@@ -1,0 +1,9 @@
+Geometry : parallel
+NChannels: 1024 
+NViews: 1024 
+NSlices: 1
+DeltaChannel: 0.1
+CenterOffset: 0.0
+DeltaSlice: 0.9765625
+FirstSliceNumber: 1
+ViewAngleList: ./ViewAngleList.txt

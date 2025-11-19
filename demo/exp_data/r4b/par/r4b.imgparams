@@ -1,0 +1,7 @@
+Nx: 5646 
+Ny: 5646
+Nz: 1
+FirstSliceNumber: 1
+Deltaxy: 0.1
+DeltaZ: 0.1
+ROIRadius: 250

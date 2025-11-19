@@ -579,9 +579,9 @@ void A_comp(
 
     float **pix_prof = ComputePixelProfLookup(imgparams->Deltaxy);
 
-    //struct timeval tm1,tm2;
-    //unsigned long long tdiff;
-    //gettimeofday(&tm1,NULL);
+    struct timeval tm1,tm2;
+    unsigned long long tdiff;
+    gettimeofday(&tm1,NULL);
 
     #pragma omp parallel private(j,r)
     {
@@ -592,34 +592,35 @@ void A_comp(
 
         #pragma omp for schedule(static)
         for (i=0; i<Ny; i++)
-        for (j=0; j<Nx; j++)
-        if(recon_mask[i*Nx+j])
-        {
-            A_comp_ij(i,j,sinoparams,imgparams,pix_prof,&A_col_sgl,A_val_sgl);
-            ACol_arr[i][j].n_index = A_col_sgl.n_index;
-            ACol_arr[i][j].countTheta = (chanwidth_t *) get_spc(NViews,sizeof(chanwidth_t));
-            ACol_arr[i][j].minIndex = (channel_t *) get_spc(NViews,sizeof(channel_t));
-            AVal_arr[i][j].val = (unsigned char *) get_spc(A_col_sgl.n_index, sizeof(unsigned char));
+        for (j=0; j<Nx; j++){
+            // if(recon_mask[i*Nx+j])
+            // {
+                A_comp_ij(i,j,sinoparams,imgparams,pix_prof,&A_col_sgl,A_val_sgl);
+                ACol_arr[i][j].n_index = A_col_sgl.n_index;
+                ACol_arr[i][j].countTheta = (chanwidth_t *) get_spc(NViews,sizeof(chanwidth_t));
+                ACol_arr[i][j].minIndex = (channel_t *) get_spc(NViews,sizeof(channel_t));
+                AVal_arr[i][j].val = (unsigned char *) get_spc(A_col_sgl.n_index, sizeof(unsigned char));
 
-            float maxval = A_val_sgl[0];
-            for (r = 0; r < A_col_sgl.n_index; r++) {
-                if(A_val_sgl[r]>maxval)
-                    maxval = A_val_sgl[r];
-            }
-            Aval_max_ptr[i*Nx+j] = maxval;
+                float maxval = A_val_sgl[0];
+                for (r = 0; r < A_col_sgl.n_index; r++) {
+                    if(A_val_sgl[r]>maxval)
+                        maxval = A_val_sgl[r];
+                }
+                Aval_max_ptr[i*Nx+j] = maxval;
 
-            for (r=0; r < A_col_sgl.n_index; r++)
-                AVal_arr[i][j].val[r] = (unsigned char)((A_val_sgl[r])/maxval*255+0.5);
+                for (r=0; r < A_col_sgl.n_index; r++)
+                    AVal_arr[i][j].val[r] = (unsigned char)((A_val_sgl[r])/maxval*255+0.5);
 
-            for (r=0; r < NViews; r++) {
-                ACol_arr[i][j].countTheta[r] = A_col_sgl.countTheta[r];
-                ACol_arr[i][j].minIndex[r] = A_col_sgl.minIndex[r];
-            }
-        }
-        else
-        {
-            ACol_arr[i][j].n_index = 0;
-            Aval_max_ptr[i*Nx+j] = 0;
+                for (r=0; r < NViews; r++) {
+                    ACol_arr[i][j].countTheta[r] = A_col_sgl.countTheta[r];
+                    ACol_arr[i][j].minIndex[r] = A_col_sgl.minIndex[r];
+                }
+            // }
+            // else
+            // {
+            //     ACol_arr[i][j].n_index = 0;
+            //     Aval_max_ptr[i*Nx+j] = 0;
+            // }
         }
 
         free((void *)A_val_sgl);
@@ -627,16 +628,16 @@ void A_comp(
         free((void *)A_col_sgl.minIndex);
     }
 
-    //gettimeofday(&tm2,NULL);
-    //tdiff = 1000 * (tm2.tv_sec - tm1.tv_sec) + (tm2.tv_usec - tm1.tv_usec) / 1000;
-    //fprintf(stdout,"matrix time 1 = %llu ms\n",tdiff);
-    //gettimeofday(&tm1,NULL);
+    gettimeofday(&tm2,NULL);
+    tdiff = 1000 * (tm2.tv_sec - tm1.tv_sec) + (tm2.tv_usec - tm1.tv_usec) / 1000;
+    fprintf(stdout,"matrix time 1 = %llu ms\n",tdiff);
+    gettimeofday(&tm1,NULL);
 
     A_piecewise(ACol_arr,AVal_arr,A_Padded_Map,svpar,sinoparams,imgparams);
 
-    //gettimeofday(&tm2,NULL);
-    //tdiff = 1000 * (tm2.tv_sec - tm1.tv_sec) + (tm2.tv_usec - tm1.tv_usec) / 1000;
-    //fprintf(stdout,"matrix time 2 = %llu ms\n",tdiff);
+    gettimeofday(&tm2,NULL);
+    tdiff = 1000 * (tm2.tv_sec - tm1.tv_sec) + (tm2.tv_usec - tm1.tv_usec) / 1000;
+    fprintf(stdout,"matrix time 2 = %llu ms\n",tdiff);
 
     for (i=0; i<Ny; i++)
     for (j=0; j<Nx; j++)
@@ -741,6 +742,9 @@ void writeAmatrix(
         exit(-1);
     }
 
+    printf("svpar.Nsv = %d, svpar.SVLength = %d\n", svpar.Nsv, svpar.SVLength);
+    long long a, b, c;
+    a = b = c = 0;
     for (i=0; i<svpar.Nsv; i++)
     {
         fwrite(svpar.bandMinMap[i].bandMin,sizeof(channel_t),sinoparams->NViews,fp);
@@ -753,9 +757,13 @@ void writeAmatrix(
                 fwrite(A_Padded_Map[i][j].val, sizeof(unsigned char), M_nonzero, fp);
                 fwrite(A_Padded_Map[i][j].pieceWiseMin,sizeof(channel_t),NViewSets,fp);
                 fwrite(A_Padded_Map[i][j].pieceWiseWidth,sizeof(channel_t),NViewSets,fp);
+                a += M_nonzero;
+                b += NViewSets;
+                c += 1;
             }
         }
     }
+    printf("a/c = %f, b/c = %f, c = %lld", 1.0 * a / c, 1.0 * b / c, c);
     fwrite(&Aval_max_ptr[0],sizeof(float),imgparams->Nx*imgparams->Ny,fp);
     fclose(fp);
 }
