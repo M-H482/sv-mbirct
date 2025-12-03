@@ -9,8 +9,8 @@
 # in the Readme file, and also by running "./mbir_ct -help".
 
 # # Set to number of physical cores
-# export OMP_NUM_THREADS=20
-# export OMP_DYNAMIC=true
+export OMP_NUM_THREADS=20
+export OMP_DYNAMIC=true
 # export OMP_DYNAMIC=false
 
 cd "$(dirname $0)"
@@ -44,3 +44,9 @@ fi
 #   -v verbose level 0=quiet, 1=show progress (default), 2=show even more
 
 time $execdir/mbir_ct -i $parName -j $parName -m $matName -v 2
+
+size=$(du -sh "${matName}.2Dsvmatrix"| cut -f1)
+echo "system matrix size: $size"
+
+echo "Executing rm ${matName}.2Dsvmatrix"
+rm "${matName}.2Dsvmatrix"
