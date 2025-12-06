@@ -26,6 +26,7 @@ echo "dataName = $dataName"
 parName="$dataDir/$dataName/par/$dataName"
 
 matDir="./sysmatrix/exp_data"
+matDir="/lvs0/dne1/rccs-hpaisrt/wu.data/ma/output_sv-mbirct/sysmatrix/exp_data"
 matName="$matDir/$dataName"
 
 # create folders that hold pre-computed items and output if they don't exist
