@@ -22,6 +22,21 @@ dataDir="./exp_data"
 dataName=${1:-shepp}
 echo "dataName = $dataName"
 
+# Default to not using Steam
+USE_STREAM="no"
+
+# Check if a parameter is passed
+if [ ! -z "$2" ]; then
+  if [ "$2" == "use_stream" ]; then
+    USE_STREAM="yes"
+    echo "Using STREAM Mode to avoid OOM"
+  else
+    echo "Invalid parameter. Use 'use_stream' to enable Steam commands."
+    exit 1
+  fi
+fi
+
+
 # sample sub-folder organization
 parName="$dataDir/$dataName/par/$dataName"
 
@@ -44,7 +59,11 @@ fi
 #   -m specifies output system matrix file basename
 #   -v verbose level 0=quiet, 1=show progress (default), 2=show even more
 
-time $execdir/mbir_ct -i $parName -j $parName -m $matName -v 2
+if [ "$USE_STREAM" == "yes" ]; then
+   time $execdir/mbir_ct_stream -i $parName -j $parName -m $matName -v 2
+else
+   time $execdir/mbir_ct -i $parName -j $parName -m $matName -v 2
+fi
 
 size=$(du -sh "${matName}.2Dsvmatrix"| cut -f1)
 echo "system matrix size: $size"
