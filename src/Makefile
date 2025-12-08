@@ -34,18 +34,27 @@ else
 endif
 
 
-all: mbir_ct clean
+all: mbir_ct mbir_ct_stream clean
 
 clean:
 	rm *.o
 
-OBJ = initialize.o recon3d.o heap.o icd3d.o A_comp.o allocate.o MBIRModularUtils.o
+# Common Objects (Full Reconstruction)
+OBJ = initialize.o recon3d.o heap.o icd3d.o allocate.o MBIRModularUtils.o
 
-mbir_ct: mbir_ct.o $(OBJ)
+# Stream Objects (Matrix Generation Only - NO recon3d/icd3d)
+OBJ_STREAM = initialize.o allocate.o MBIRModularUtils.o
+
+# Original Version (Complete Reconstruction)
+mbir_ct: mbir_ct.o A_comp.o $(OBJ)
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
+	mv $@ ../bin
+
+# Streaming Version (Matrix Generation Only)
+mbir_ct_stream: mbir_ct_stream.o A_comp_stream.o $(OBJ_STREAM)
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 	mv $@ ../bin
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
-
 

@@ -1,0 +1,7 @@
+Nx: 3600 
+Ny: 3600
+Nz: 1
+FirstSliceNumber: 1
+Deltaxy: 0.1
+DeltaZ: 0.1
+ROIRadius: 250
